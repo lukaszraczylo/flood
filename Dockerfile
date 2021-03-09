@@ -60,5 +60,4 @@ FROM flood as rtorrent-flood
 
 # Copy rTorrent
 COPY --from=rtorrent / /
-
 ENTRYPOINT ["npm", "--prefix=/usr/src/app/", "run", "start:development:server", "--", "--host=0.0.0.0", "--rtorrent"]
