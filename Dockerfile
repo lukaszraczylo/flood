@@ -30,7 +30,6 @@ RUN npm run build-assets
 FROM ${NODE_IMAGE} as flood
 
 WORKDIR /usr/src/app/
-
 # Copy sources
 COPY --from=nodebuild /usr/src/app ./
 
