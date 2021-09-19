@@ -56,13 +56,17 @@ class TorrentStore {
     return filteredTorrents;
   }
 
-  setSelectedTorrents({event, hash}: {event: React.MouseEvent | React.TouchEvent; hash: string}) {
+  setSelectedTorrents({event, hash}: {event: React.KeyboardEvent | React.MouseEvent | React.TouchEvent; hash: string}) {
     this.selectedTorrents = selectTorrents({
       event,
       hash,
       selectedTorrents: this.selectedTorrents,
       torrentList: this.filteredTorrents,
     });
+  }
+
+  selectAllTorrents() {
+    this.selectedTorrents = this.filteredTorrents.map((v) => v.hash);
   }
 
   handleTorrentListDiffChange(torrentListDiffs: Operation[]) {

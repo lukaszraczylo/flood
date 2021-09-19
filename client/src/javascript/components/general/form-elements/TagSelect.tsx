@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 import {FC, ReactNode, ReactNodeArray, useEffect, useRef, useState} from 'react';
-import sort from 'fast-sort';
+import {sort} from 'fast-sort';
 import {Trans} from '@lingui/react';
 import {useKeyPressEvent} from 'react-use';
 
@@ -37,7 +37,7 @@ const TagSelect: FC<TagSelectProps> = ({defaultValue, placeholder, id, label, on
 
   useEffect(() => {
     const handleDocumentClick = (e: Event) => {
-      if (!formRowRef.current?.contains((e.target as unknown) as Node)) {
+      if (!formRowRef.current?.contains(e.target as unknown as Node)) {
         setIsOpen(false);
       }
     };
@@ -60,13 +60,13 @@ const TagSelect: FC<TagSelectProps> = ({defaultValue, placeholder, id, label, on
 
   return (
     <FormRowItem ref={formRowRef}>
-      <label className="form__element__label">{label}</label>
       <div className={classes}>
         <Textbox
           autoComplete={isOpen ? 'off' : undefined}
           id={id || 'tags'}
           addonPlacement="after"
           defaultValue={defaultValue}
+          label={label}
           onChange={() => {
             if (textboxRef.current != null) {
               let selectedTagsArray = textboxRef.current.value
@@ -86,12 +86,14 @@ const TagSelect: FC<TagSelectProps> = ({defaultValue, placeholder, id, label, on
             }
           }}
           placeholder={placeholder}
-          ref={textboxRef}>
+          ref={textboxRef}
+        >
           <FormElementAddon
             onClick={() => {
               setIsOpen(!isOpen);
             }}
-            className="select__indicator">
+            className="select__indicator"
+          >
             <Chevron />
           </FormElementAddon>
           <Portal>
@@ -104,7 +106,8 @@ const TagSelect: FC<TagSelectProps> = ({defaultValue, placeholder, id, label, on
               }}
               overlayProps={{isInteractive: false}}
               ref={menuRef}
-              triggerRef={textboxRef}>
+              triggerRef={textboxRef}
+            >
               {[
                 ...new Set([
                   'untagged',
@@ -129,7 +132,8 @@ const TagSelect: FC<TagSelectProps> = ({defaultValue, placeholder, id, label, on
                       } else {
                         setSelectedTags([...selectedTags.filter((key) => key !== ''), tag]);
                       }
-                    }}>
+                    }}
+                  >
                     {tag === 'untagged' ? <Trans id="filter.untagged" /> : tag}
                   </SelectItem>,
                 );

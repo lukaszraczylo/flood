@@ -8,7 +8,7 @@ import type {FormRowItemProps} from './FormRowItem';
 
 export interface ToggleInputProps {
   children?: ReactNode;
-  id?: InputHTMLAttributes<HTMLInputElement>['name'];
+  id: InputHTMLAttributes<HTMLInputElement>['name'];
   groupID?: InputHTMLAttributes<HTMLInputElement>['name'];
   type: 'checkbox' | 'radio';
   value?: InputHTMLAttributes<HTMLInputElement>['value'];
@@ -40,14 +40,16 @@ const ToggleInput: FC<ToggleInputProps> = ({
   onClick,
 }: ToggleInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const classes = classnames('form__element toggle-input', type, {
-    'form__element--match-textbox-height': matchTextboxHeight,
-    'form__element--label-offset': labelOffset,
-  });
 
   return (
     <FormRowItem shrink={shrink} grow={grow} width={width}>
-      <label className={classes}>
+      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+      <label
+        className={classnames('form__element toggle-input', type, {
+          'form__element--match-textbox-height': matchTextboxHeight,
+          'form__element--label-offset': labelOffset,
+        })}
+      >
         <input
           defaultChecked={defaultChecked}
           checked={checked}

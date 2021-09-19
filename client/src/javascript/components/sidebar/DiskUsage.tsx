@@ -1,7 +1,7 @@
 import {css} from '@emotion/react';
 import {FC, ReactNode, ReactNodeArray} from 'react';
 import {observer} from 'mobx-react';
-import {Trans} from '@lingui/react';
+import {useLingui} from '@lingui/react';
 
 import type {Disk} from '@shared/types/DiskUsage';
 
@@ -17,13 +17,15 @@ interface DiskUsageTooltipItemProps {
 }
 
 const DiskUsageTooltipItem: FC<DiskUsageTooltipItemProps> = ({label, value}: DiskUsageTooltipItemProps) => (
-  <li className="diskusage__details-list__item">
+  <li aria-label="label" className="diskusage__details-list__item" role="cell">
     <span className="diskusage__details-list__label">{label}</span>
     <Size className="diskuage__size-used" value={value} />
   </li>
 );
 
 const DiskUsage: FC = observer(() => {
+  const {i18n} = useLingui();
+
   const {disks} = DiskUsageStore;
   const {mountPoints} = SettingStore.floodSettings;
 
@@ -43,20 +45,21 @@ const DiskUsage: FC = observer(() => {
     .filter((target) => target in diskMap)
     .map((target) => diskMap[target])
     .map((d) => (
-      <li key={d.target} className="sidebar-filter__item sidebar__diskusage">
+      <li key={d.target} className="sidebar-filter__item sidebar__diskusage" role="row">
         <Tooltip
           content={
-            <ul className="diskusage__details-list">
-              <DiskUsageTooltipItem value={d.used} label={<Trans id="status.diskusage.used" />} />
-              <DiskUsageTooltipItem value={d.avail} label={<Trans id="status.diskusage.free" />} />
-              <DiskUsageTooltipItem value={d.size} label={<Trans id="status.diskusage.total" />} />
+            <ul className="diskusage__details-list" role="tooltip">
+              <DiskUsageTooltipItem value={d.used} label={i18n._('status.diskusage.used')} />
+              <DiskUsageTooltipItem value={d.avail} label={i18n._('status.diskusage.free')} />
+              <DiskUsageTooltipItem value={d.size} label={i18n._('status.diskusage.total')} />
             </ul>
           }
           position="top"
           styles={css({
-            width: '100%',
+            cursor: 'default',
           })}
-          wrapperClassName="diskusage__item">
+          wrapperClassName="diskusage__item"
+        >
           <div className="diskusage__text-row">
             {d.target}
             <span>{Math.round((100 * d.used) / d.size)}%</span>
@@ -70,11 +73,11 @@ const DiskUsage: FC = observer(() => {
     return null;
   }
 
+  const title = i18n._('status.diskusage.title');
+
   return (
-    <ul className="sidebar-filter sidebar__item">
-      <li className="sidebar-filter__item sidebar-filter__item--heading">
-        <Trans id="status.diskusage.title" />
-      </li>
+    <ul aria-label={title} className="sidebar-filter sidebar__item" role="table">
+      <li className="sidebar-filter__item sidebar-filter__item--heading">{title}</li>
       {diskNodes}
     </ul>
   );

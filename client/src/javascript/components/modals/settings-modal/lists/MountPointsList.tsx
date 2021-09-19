@@ -56,6 +56,7 @@ const MountPointsList: FC<MountPointsListProps> = ({onSettingsChange}: MountPoin
           <span className="sortable-list__content sortable-list__content--secondary">
             <Checkbox
               defaultChecked={visible}
+              id={id}
               onClick={(event) => {
                 const newItems = diskItems.map((disk) => {
                   if (disk.id === id) {
@@ -68,7 +69,8 @@ const MountPointsList: FC<MountPointsListProps> = ({onSettingsChange}: MountPoin
                   mountPoints: newItems.filter((newItem) => newItem.visible).map((newItem) => newItem.id),
                 });
                 setDiskItems(newItems);
-              }}>
+              }}
+            >
               <Trans id="settings.diskusage.show" />
             </Checkbox>
           </span>

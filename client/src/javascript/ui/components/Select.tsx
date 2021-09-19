@@ -61,9 +61,11 @@ const Select: FC<SelectProps> = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedID, setSelectedID] = useState<string | number>(
     defaultID ??
-      ((children as ReactNodeArray)?.find(
-        (child) => (child as ReactElement<SelectItemProps>)?.props?.id != null,
-      ) as ReactElement<SelectItemProps>)?.props.id ??
+      (
+        (children as ReactNodeArray)?.find(
+          (child) => (child as ReactElement<SelectItemProps>)?.props?.id != null,
+        ) as ReactElement<SelectItemProps>
+      )?.props.id ??
       '',
   );
 
@@ -141,7 +143,8 @@ const Select: FC<SelectProps> = ({
             }
           }}
           priority={priority}
-          wrap={false}>
+          wrap={false}
+        >
           <FormElementAddon className="select__indicator">
             <Chevron />
           </FormElementAddon>
@@ -156,7 +159,8 @@ const Select: FC<SelectProps> = ({
             matchTriggerWidth={matchTriggerWidth}
             menuAlign={menuAlign}
             ref={menuRef}
-            triggerRef={triggerRef}>
+            triggerRef={triggerRef}
+          >
             {Children.toArray(children).reduce((accumulator: Array<ReactElement>, child) => {
               const item = child as ReactElement<SelectItemProps>;
 

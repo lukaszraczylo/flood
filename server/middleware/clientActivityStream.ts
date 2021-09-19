@@ -5,8 +5,8 @@ import type TypedEmitter from 'typed-emitter';
 import type {HistorySnapshot} from '@shared/constants/historySnapshotTypes';
 
 import DiskUsage from '../models/DiskUsage';
+import {getAllServices} from '../services';
 import ServerEvent from '../models/ServerEvent';
-import services from '../services';
 
 import type {DiskUsageSummary} from '../models/DiskUsage';
 import type {TransferHistory} from '../../shared/types/TransferData';
@@ -21,7 +21,7 @@ export default async (req: Request<unknown, unknown, unknown, {historySnapshot: 
     return;
   }
 
-  const serviceInstances = services.getAllServices(user);
+  const serviceInstances = getAllServices(user);
   const serverEvent = new ServerEvent(res);
   const fetchTorrentList = serviceInstances.torrentService.fetchTorrentList();
 
@@ -108,13 +108,9 @@ export default async (req: Request<unknown, unknown, unknown, {historySnapshot: 
   // Transfer summary
   const transferSummary = serviceInstances.historyService.getTransferSummary();
   serverEvent.emit(transferSummary.id, 'TRANSFER_SUMMARY_FULL_UPDATE', transferSummary.transferSummary);
-  handleEvents(
-    serviceInstances.historyService,
-    'TRANSFER_SUMMARY_DIFF_CHANGE',
-    ({id, diff}: {id: number; diff: Operation[]}) => {
-      serverEvent.emit(id, 'TRANSFER_SUMMARY_DIFF_CHANGE', diff);
-    },
-  );
+  handleEvents(serviceInstances.historyService, 'TRANSFER_SUMMARY_FULL_UPDATE', ({id, summary}) => {
+    serverEvent.emit(id, 'TRANSFER_SUMMARY_FULL_UPDATE', summary);
+  });
 
   // Notifications
   serverEvent.emit(

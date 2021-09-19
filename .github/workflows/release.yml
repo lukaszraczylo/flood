@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        node: [16]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: sudo npm i -g pkg
+      - run: npm ci
+
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Set up QEMU
+        run: |
+          sudo apt update
+          sudo apt install --reinstall -y qemu-user-static
+
+      - name: Install ldid
+        run: |
+          sudo wget https://github.com/jesec/ldid-static/releases/download/v2.1.4/ldid-amd64 -O /usr/local/bin/ldid
+          sudo chmod +x /usr/local/bin/ldid
+
+      - run: npm run build-pkg
+      - run: git fetch origin ${{ github.ref }}
+      - run: git for-each-ref ${{ github.ref }} --format="%(contents)" > body
+
+      - name: Rename linuxstatic to linux
+        run: |
+          mv dist-pkg/flood-linuxstatic-x64 dist-pkg/flood-linux-x64
+          mv dist-pkg/flood-linuxstatic-arm64 dist-pkg/flood-linux-arm64
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          body_path: body
+          files: |
+            dist-pkg/flood-linux-x64
+            dist-pkg/flood-linux-arm64
+            dist-pkg/flood-macos-x64
+            dist-pkg/flood-macos-arm64
+            dist-pkg/flood-win-x64.exe
+            dist-pkg/flood-win-arm64.exe
+
+  release-docker:
+    needs: release
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Parse semantic version
+        id: parse_semver
+        run: |
+          full_version=`echo ${GITHUB_REF/refs\/tags\/v/}`
+          major_version=`echo $full_version | cut -d'.' -f1`
+          minor_version=`echo $full_version | cut -d'.' -f2`
+          major_minor=`echo $major_version.$minor_version`
+          echo ::set-output name=MAJOR_VERSION::$major_version
+          echo ::set-output name=MAJOR_MINOR::$major_minor
+          echo ::set-output name=FULL_VERSION::$full_version
+
+      - name: Set up QEMU
+        run: |
+          sudo apt update
+          sudo apt install --reinstall -y qemu-user-static
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Wait until the package is available
+        uses: nick-invision/retry@v2
+        with:
+          command: curl -f -s https://registry.npmjs.org/flood/${{ steps.parse_semver.outputs.FULL_VERSION }} &>/dev/null
+          timeout_minutes: 30
+          max_attempts: 15
+          retry_wait_seconds: 15
+
+      - run: sleep 120
+
+      - name: Publish to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          build-args: VERSION=${{ steps.parse_semver.outputs.FULL_VERSION }}
+          context: .
+          file: ./distribution/containers/Dockerfile.release
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: |
+            jesec/flood:latest
+            jesec/flood:${{ steps.parse_semver.outputs.MAJOR_VERSION }}
+            jesec/flood:${{ steps.parse_semver.outputs.MAJOR_MINOR }}
+            jesec/flood:${{ steps.parse_semver.outputs.FULL_VERSION }}

@@ -1,17 +1,19 @@
-import {literal, number, object, string, union} from 'zod';
+import {literal, number, string, strictObject, union} from 'zod';
 import type {infer as zodInfer} from 'zod';
 
-const delugeConnectionSettingsSchema = object({
+const delugeConnectionSettingsSchema = strictObject({
   client: literal('Deluge'),
-  type: literal('web'),
+  type: literal('rpc'),
   version: literal(1),
-  url: string().url(),
+  host: string(),
+  port: number(),
+  username: string(),
   password: string(),
 });
 
 export type DelugeConnectionSettings = zodInfer<typeof delugeConnectionSettingsSchema>;
 
-const qBittorrentConnectionSettingsSchema = object({
+const qBittorrentConnectionSettingsSchema = strictObject({
   client: literal('qBittorrent'),
   type: literal('web'),
   version: literal(1),
@@ -22,7 +24,7 @@ const qBittorrentConnectionSettingsSchema = object({
 
 export type QBittorrentConnectionSettings = zodInfer<typeof qBittorrentConnectionSettingsSchema>;
 
-const rTorrentTCPConnectionSettingsSchema = object({
+const rTorrentTCPConnectionSettingsSchema = strictObject({
   client: literal('rTorrent'),
   type: literal('tcp'),
   version: literal(1),
@@ -32,7 +34,7 @@ const rTorrentTCPConnectionSettingsSchema = object({
 
 export type RTorrentTCPConnectionSettings = zodInfer<typeof rTorrentTCPConnectionSettingsSchema>;
 
-const rTorrentSocketConnectionSettingsSchema = object({
+const rTorrentSocketConnectionSettingsSchema = strictObject({
   client: literal('rTorrent'),
   type: literal('socket'),
   version: literal(1),
@@ -48,7 +50,7 @@ const rTorrentConnectionSettingsSchema = union([
 
 export type RTorrentConnectionSettings = zodInfer<typeof rTorrentConnectionSettingsSchema>;
 
-const transmissionConnectionSettingsSchema = object({
+const transmissionConnectionSettingsSchema = strictObject({
   client: literal('Transmission'),
   type: literal('rpc'),
   version: literal(1),
@@ -60,6 +62,7 @@ const transmissionConnectionSettingsSchema = object({
 export type TransmissionConnectionSettings = zodInfer<typeof transmissionConnectionSettingsSchema>;
 
 export const clientConnectionSettingsSchema = union([
+  delugeConnectionSettingsSchema,
   qBittorrentConnectionSettingsSchema,
   rTorrentConnectionSettingsSchema,
   transmissionConnectionSettingsSchema,

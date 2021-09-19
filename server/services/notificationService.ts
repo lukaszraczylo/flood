@@ -1,7 +1,12 @@
 import Datastore from 'nedb-promises';
 import path from 'path';
 
-import type {Notification, NotificationCount, NotificationFetchOptions} from '@shared/types/Notification';
+import type {
+  Notification,
+  NotificationCount,
+  NotificationFetchOptions,
+  NotificationState,
+} from '@shared/types/Notification';
 
 import BaseService from './BaseService';
 import config from '../../config';
@@ -58,14 +63,14 @@ class NotificationService extends BaseService<NotificationServiceEvents> {
    * @param {Array<Notification>} notifications - Notifications to add
    * @return {Promise<void>} - Rejects with error.
    */
-  async addNotification(notifications: Array<Pick<Notification, 'id' | 'data'>>): Promise<void> {
+  async addNotification(notifications: Array<Pick<Notification, 'id' | 'data'>>, ts = Date.now()): Promise<void> {
     this.count.total += notifications.length;
     this.count.unread += notifications.length;
 
     await this.db
       .insert(
         notifications.map((notification) => ({
-          ts: Date.now(),
+          ts,
           data: notification.data,
           id: notification.id,
           read: false,
@@ -92,16 +97,9 @@ class NotificationService extends BaseService<NotificationServiceEvents> {
    * Gets notifications
    *
    * @param {NotificationFetchOptions} - options - An object of options...
-   * @return {Promise<{Notification[][], NotificationCount}>} - Resolves with notifications and counts or rejects with error.
+   * @return {NotificationState} - Resolves with notifications and counts or rejects with error.
    */
-  async getNotifications({
-    allNotifications,
-    start,
-    limit,
-  }: NotificationFetchOptions): Promise<{
-    notifications: Notification[][];
-    count: NotificationCount;
-  }> {
+  async getNotifications({allNotifications, start, limit}: NotificationFetchOptions): Promise<NotificationState> {
     const sortedNotifications = this.db.find<Notification>({}).sort({ts: -1});
 
     if (allNotifications) {

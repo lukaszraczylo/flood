@@ -94,6 +94,14 @@ const torrentListMethodCallConfigs = {
     methodCall: 'd.creation_date=',
     transformValue: numberTransformer,
   },
+  dateFinished: {
+    methodCall: 'd.timestamp.finished=',
+    transformValue: numberTransformer,
+  },
+  dateActive: {
+    methodCall: 'd.timestamp.last_active=',
+    transformValue: numberTransformer,
+  },
   tags: {
     methodCall: 'd.custom1=',
     transformValue: (value: unknown): string[] => {

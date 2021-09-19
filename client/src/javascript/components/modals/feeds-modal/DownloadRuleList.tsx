@@ -39,7 +39,8 @@ const DownloadRuleList: FC<DownloadRuleListProps> = observer(
             excludeNode = (
               <li
                 className="interactive-list__detail-list__item
-        interactive-list__detail interactive-list__detail--tertiary">
+        interactive-list__detail interactive-list__detail--tertiary"
+              >
                 <Trans id="feeds.exclude" />
                 {': '}
                 {rule.exclude}
@@ -69,19 +70,22 @@ const DownloadRuleList: FC<DownloadRuleListProps> = observer(
                 <ul className="interactive-list__detail-list">
                   <li
                     className="interactive-list__detail-list__item
-            interactive-list__detail--primary">
+            interactive-list__detail--primary"
+                  >
                     {rule.label}
                   </li>
                   <li
                     className="interactive-list__detail-list__item
             interactive-list__detail-list__item--overflow
-            interactive-list__detail interactive-list__detail--secondary">
+            interactive-list__detail interactive-list__detail--secondary"
+                  >
                     <Trans id="feeds.match.count" values={{count: matchedCount}} />
                   </li>
                   {rule === currentRule && (
                     <li
                       className="interactive-list__detail-list__item
-            interactive-list__detail--primary">
+            interactive-list__detail--primary"
+                    >
                       Modifying
                     </li>
                   )}
@@ -94,7 +98,8 @@ const DownloadRuleList: FC<DownloadRuleListProps> = observer(
                       maxWidth: '50%',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                    }}>
+                    }}
+                  >
                     <Trans id="feeds.match" />
                     {': '}
                     {rule.match}
@@ -104,14 +109,20 @@ const DownloadRuleList: FC<DownloadRuleListProps> = observer(
                   {tags}
                 </ul>
               </div>
-              <span className="interactive-list__icon interactive-list__icon--action" onClick={() => onSelect(rule)}>
+              <button
+                className="interactive-list__icon interactive-list__icon--action"
+                type="button"
+                onClick={() => onSelect(rule)}
+              >
                 <Edit />
-              </span>
-              <span
+              </button>
+              <button
                 className="interactive-list__icon interactive-list__icon--action interactive-list__icon--action--warning"
-                onClick={() => onRemove(rule)}>
+                type="button"
+                onClick={() => onRemove(rule)}
+              >
                 <Close />
-              </span>
+              </button>
             </li>
           );
         })}

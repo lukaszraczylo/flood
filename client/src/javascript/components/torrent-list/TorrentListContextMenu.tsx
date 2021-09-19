@@ -1,8 +1,6 @@
 import {createRef, FC, MutableRefObject} from 'react';
 import {observer} from 'mobx-react';
 
-import type {TorrentProperties} from '@shared/types/Torrent';
-
 import {Checkmark} from '@client/ui/icons';
 import ConfigStore from '@client/stores/ConfigStore';
 import TorrentActions from '@client/actions/TorrentActions';
@@ -11,6 +9,8 @@ import TorrentStore from '@client/stores/TorrentStore';
 import UIActions from '@client/actions/UIActions';
 
 import type {ContextMenuItem} from '@client/stores/UIStore';
+
+import type {TorrentProperties} from '@shared/types/Torrent';
 
 import PriorityMeter from '../general/PriorityMeter';
 
@@ -24,7 +24,8 @@ const InlineTorrentPropertyCheckbox: FC<{property: keyof TorrentProperties}> = o
           className="toggle-input__indicator__icon"
           style={{
             opacity: TorrentStore.torrents[getLastSelectedTorrent()][property] ? '1' : undefined,
-          }}>
+          }}
+        >
           <Checkmark />
         </div>
       </div>
@@ -32,7 +33,7 @@ const InlineTorrentPropertyCheckbox: FC<{property: keyof TorrentProperties}> = o
   ),
 );
 
-const getContextMenuItems = (torrent: TorrentProperties): Array<ContextMenuItem> => {
+export const getContextMenuItems = (torrent: TorrentProperties): Array<ContextMenuItem> => {
   const changePriorityFuncRef = createRef<() => number>();
 
   return [
@@ -132,15 +133,17 @@ const getContextMenuItems = (torrent: TorrentProperties): Array<ContextMenuItem>
       clickHandler: (e) => {
         e.preventDefault();
 
-        const link = document.createElement('a');
+        TorrentStore.selectedTorrents.forEach((hash) => {
+          const link = document.createElement('a');
 
-        link.download = '';
-        link.href = `${ConfigStore.baseURI}api/torrents/${getLastSelectedTorrent()}/contents/all/data`;
-        link.style.display = 'none';
+          link.download = '';
+          link.href = `${ConfigStore.baseURI}api/torrents/${hash}/contents/all/data`;
+          link.style.display = 'none';
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
       },
     },
     {
@@ -225,8 +228,4 @@ const getContextMenuItems = (torrent: TorrentProperties): Array<ContextMenuItem>
       ),
     },
   ];
-};
-
-export default {
-  getContextMenuItems,
 };

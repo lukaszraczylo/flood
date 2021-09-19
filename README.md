@@ -13,6 +13,19 @@ Flood is a monitoring service for various torrent clients. It's a Node.js servic
 | [rTorrent](https://github.com/rakshasa/rtorrent)                | :white_check_mark: ([tested](https://github.com/jesec/flood/blob/master/server/.jest/rtorrent.setup.js))     |
 | [qBittorrent](https://github.com/qbittorrent/qBittorrent) v4.1+ | :white_check_mark: ([tested](https://github.com/jesec/flood/blob/master/server/.jest/qbittorrent.setup.js))  |
 | [Transmission](https://github.com/transmission/transmission)    | :white_check_mark: ([tested](https://github.com/jesec/flood/blob/master/server/.jest/transmission.setup.js)) |
+| [Deluge](https://github.com/deluge-torrent/deluge) v2+          | :alembic: Experimental                                                                                       |
+
+#### Integrating with Flood
+
+APIs are officially documented inline by the [comments](https://github.com/jesec/flood/blob/f7019001dd81ee8401c87d4c4cd6da6f5f520611/server/routes/api/torrents.ts#L106-L117) and [types](https://github.com/jesec/flood/blob/f7019001dd81ee8401c87d4c4cd6da6f5f520611/shared/schema/api/torrents.ts#L10-L32).
+
+You can also check out:
+
+- [community documentation site](https://flood-api.netlify.app)
+- [list of unofficial client API libraries](https://github.com/jesec/flood/wiki/List-of-unofficial-client-API-libraries)
+- [list of unofficial API integrations](https://github.com/jesec/flood/wiki/List-of-unofficial-API-integrations)
+
+Flood conforms to [Semantic Versioning](https://semver.org) conventions.
 
 #### Feedback
 
@@ -82,7 +95,6 @@ Run the installation command again.
   - macOS users can use `brew` to install rTorrent.
   - [Compile](https://github.com/rakshasa/rtorrent/wiki/Installing): XMLRPC support flag (`--with-xmlrpc-c`) is required during compilation.
   - Certain features (sequential download, initial seeding, etc.) are not available in vanilla rTorrent.
-  - rTorrent needs to have read access to files of temporary directory of Flood (`<rundir>/temp`) as Flood adds torrents to rTorrent by local file path ([96c754dd](https://github.com/jesec/flood/commit/96c754ddeb614b45a565e8307c9985ee85bcb7fa)). This is because rTorrent uses a rather antique XML-RPC interface, which usually has certain limitations (size of body) and is unreliable in handling large binary objects ([Flood-UI/flood#164](https://github.com/Flood-UI/flood/issues/164), [Flood-UI/flood#741](https://github.com/Flood-UI/flood/issues/741), [Flood-UI/flood#773](https://github.com/Flood-UI/flood/issues/773)). See [#86](https://github.com/jesec/flood/discussions/86).
 - Ask for help in the [Flood Discord server](https://discord.gg/Z7yR5Uf).
 
 ### Docker
@@ -96,6 +108,8 @@ To upgrade, `docker pull jesec/flood`.
 Note that you have to let Docker know which port should be exposed (e.g. `-p 3000:3000`) and folder mapping (e.g. `-v /data:/data`).
 
 Don't forget to pay attention to `flood`'s arguments like `--port` and `--allowedpath`.
+
+Alternatively, you can pass in environment variables instead (e.g. `-e FLOOD_OPTION_port=3000`).
 
 Checkout [Run Flood (and torrent clients) in containers](https://github.com/jesec/flood/discussions/120) discussion.
 

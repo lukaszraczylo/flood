@@ -104,7 +104,8 @@ const AuthTab: FC = observer(() => {
             .then(AuthActions.fetchUsers);
         }
       }}
-      ref={formRef}>
+      ref={formRef}
+    >
       <ModalFormSectionHeader>
         <Trans id="auth.user.accounts" />
       </ModalFormSectionHeader>
@@ -130,11 +131,13 @@ const AuthTab: FC = observer(() => {
 
                 if (!isCurrentUser) {
                   removeIcon = (
-                    <span
+                    <button
                       className="interactive-list__icon interactive-list__icon--action interactive-list__icon--action--warning"
-                      onClick={() => AuthActions.deleteUser(user.username).then(AuthActions.fetchUsers)}>
+                      type="button"
+                      onClick={() => AuthActions.deleteUser(user.username).then(AuthActions.fetchUsers)}
+                    >
                       <Close />
-                    </span>
+                    </button>
                   );
                 } else {
                   badge = (

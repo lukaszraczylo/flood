@@ -6,14 +6,7 @@
 // Copyright (C) 2021, Contributors to the Flood project
 // Imported and modified for the Flood project
 
-export type XMLRPCValue =
-  | Array<XMLRPCValue>
-  | {[key: string]: XMLRPCValue}
-  | number
-  | string
-  | boolean
-  | Date
-  | ArrayBuffer;
+export type XMLRPCValue = Array<XMLRPCValue> | {[key: string]: XMLRPCValue} | number | string | boolean | Date | Buffer;
 
 const value = (value: XMLRPCValue): string => {
   if (value == null) return '';
@@ -23,18 +16,27 @@ const value = (value: XMLRPCValue): string => {
   if (Array.isArray(value)) {
     type = 'array';
     value = data(value);
-  } else if (Number.isInteger(value)) type = 'i4';
-  else if (typeof value === 'number') type = 'double';
-  else if (typeof value === 'string') type = 'string';
-  else if (typeof value === 'boolean') {
+  } else if (Number.isInteger(value)) {
+    type = 'i4';
+  } else if (typeof value === 'number') {
+    type = 'double';
+  } else if (typeof value === 'string') {
+    type = 'string';
+    value = value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  } else if (typeof value === 'boolean') {
     type = 'boolean';
     value = value ? '1' : '0';
   } else if (value instanceof Date) {
     type = 'dateTime.iso8601';
     value = value.toISOString();
-  } else if (value instanceof ArrayBuffer) {
+  } else if (value instanceof Buffer) {
     type = 'base64';
-    value = btoa(String.fromCharCode(...new Uint8Array(value)));
+    value = value.toString('base64');
   } else {
     type = 'struct';
     value = members(value);

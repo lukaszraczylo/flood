@@ -331,6 +331,7 @@ class TransmissionClientGatewayService extends ClientGatewayService {
         'haveValid',
         'addedDate',
         'dateCreated',
+        'doneDate',
         'rateDownload',
         'rateUpload',
         'downloadedEver',
@@ -345,6 +346,7 @@ class TransmissionClientGatewayService extends ClientGatewayService {
         'totalSize',
         'trackers',
         'labels',
+        'activityDate',
       ])
       .then(this.processClientRequestSuccess, this.processClientRequestError)
       .then(async (torrents) => {
@@ -363,8 +365,10 @@ class TransmissionClientGatewayService extends ClientGatewayService {
                 hash: torrent.hashString.toUpperCase(),
                 name: torrent.name,
                 bytesDone: torrent.haveValid,
+                dateActive: torrent.rateDownload > 0 || torrent.rateUpload > 0 ? -1 : torrent.activityDate,
                 dateAdded: torrent.addedDate,
                 dateCreated: torrent.dateCreated,
+                dateFinished: torrent.doneDate,
                 directory: torrent.downloadDir,
                 downRate: torrent.rateDownload,
                 downTotal: torrent.downloadedEver,

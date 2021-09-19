@@ -3,10 +3,9 @@ import {observer} from 'mobx-react';
 import {Trans, useLingui} from '@lingui/react';
 
 import {Close, Edit} from '@client/ui/icons';
+import FeedStore from '@client/stores/FeedStore';
 
 import type {Feed} from '@shared/types/Feed';
-
-import FeedStore from '@client/stores/FeedStore';
 
 interface FeedListProps {
   currentFeed: Feed | null;
@@ -48,24 +47,28 @@ const FeedList: FC<FeedListProps> = observer(
           return (
             <li
               className="interactive-list__item interactive-list__item--stacked-content feed-list__feed"
-              key={feed._id}>
+              key={feed._id}
+            >
               <div className="interactive-list__label">
                 <ul className="interactive-list__detail-list">
                   <li
                     className="interactive-list__detail-list__item
-                interactive-list__detail--primary">
+                interactive-list__detail--primary"
+                  >
                     {feed.label}
                   </li>
                   <li
                     className="interactive-list__detail-list__item
                 interactive-list__detail-list__item--overflow
-                interactive-list__detail interactive-list__detail--secondary">
+                interactive-list__detail interactive-list__detail--secondary"
+                  >
                     <Trans id="feeds.match.count" values={{count: matchedCount}} />
                   </li>
                   {feed === currentFeed && (
                     <li
                       className="interactive-list__detail-list__item
-                interactive-list__detail--primary">
+                interactive-list__detail--primary"
+                    >
                       Modifying
                     </li>
                   )}
@@ -73,33 +76,35 @@ const FeedList: FC<FeedListProps> = observer(
                 <ul className="interactive-list__detail-list">
                   <li
                     className="interactive-list__detail-list__item
-                interactive-list__detail interactive-list__detail--tertiary">
+                interactive-list__detail interactive-list__detail--tertiary"
+                  >
                     {`${intervalText} ${i18n._(intervalMultiplierMessage)}`}
                   </li>
                   <li
                     className="interactive-list__detail-list__item
                 interactive-list__detail-list__item--overflow
-                interactive-list__detail interactive-list__detail--tertiary">
+                interactive-list__detail interactive-list__detail--tertiary"
+                  >
                     <a href={feed.url} rel="noopener noreferrer" target="_blank">
                       {feed.url}
                     </a>
                   </li>
                 </ul>
               </div>
-              <span
+              <button
                 className="interactive-list__icon interactive-list__icon--action"
-                onClick={() => {
-                  onSelect(feed);
-                }}>
+                type="button"
+                onClick={() => onSelect(feed)}
+              >
                 <Edit />
-              </span>
-              <span
+              </button>
+              <button
                 className="interactive-list__icon interactive-list__icon--action interactive-list__icon--action--warning"
-                onClick={() => {
-                  onRemove(feed);
-                }}>
+                type="button"
+                onClick={() => onRemove(feed)}
+              >
                 <Close />
-              </span>
+              </button>
             </li>
           );
         })}

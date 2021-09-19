@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import {Component} from 'react';
+import {FC, useState} from 'react';
 
 import {Checkbox} from '@client/ui';
 import {FolderClosedSolid, FolderOpenSolid} from '@client/ui/icons';
@@ -22,138 +22,91 @@ interface DirectoryTreeNodeProps {
   onItemSelect: (selection: TorrentContentSelection) => void;
 }
 
-interface DirectoryTreeNodeStates {
-  expanded: boolean;
-}
+const DirectoryTreeNode: FC<DirectoryTreeNodeProps> = ({
+  depth,
+  directoryName,
+  id,
+  itemsTree,
+  hash,
+  path,
+  isSelected,
+  onItemSelect,
+}: DirectoryTreeNodeProps) => {
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const currentPath = [...path, directoryName];
 
-class DirectoryTreeNode extends Component<DirectoryTreeNodeProps, DirectoryTreeNodeStates> {
-  static defaultProps = {
-    path: [],
-    selectedItems: {},
-  };
-
-  constructor(props: DirectoryTreeNodeProps) {
-    super(props);
-
-    this.state = {
-      expanded: false,
-    };
-  }
-
-  getCurrentPath() {
-    const {path, directoryName} = this.props;
-
-    return [...path, directoryName];
-  }
-
-  getIcon() {
-    const {id, isSelected} = this.props;
-    const {expanded} = this.state;
-
-    let icon = null;
-    if (expanded) {
-      icon = <FolderOpenSolid />;
-    } else {
-      icon = <FolderClosedSolid />;
-    }
-
-    return (
-      <div className="file__checkbox directory-tree__checkbox">
-        <div
-          className="directory-tree__checkbox__item
-          directory-tree__checkbox__item--checkbox">
-          <Checkbox checked={isSelected} id={id} onClick={this.handleDirectorySelection} />
+  return (
+    <div
+      className={classnames('directory-tree__branch', `directory-tree__branch--depth-${depth}`, {
+        'directory-tree__node--selected': isSelected,
+      })}
+    >
+      <button
+        className={classnames(
+          'directory-tree__node',
+          'directory-tree__node--selectable directory-tree__node--directory',
+          {
+            'is-expanded': expanded,
+          },
+        )}
+        css={{
+          width: '100%',
+          textAlign: 'left',
+          ':focus': {
+            outline: 'none',
+            WebkitTapHighlightColor: 'transparent',
+          },
+          ':focus-visible': {
+            outline: 'dashed',
+          },
+        }}
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        title={directoryName}
+      >
+        <div className="file__label">
+          <div className="file__checkbox directory-tree__checkbox">
+            <div
+              className="directory-tree__checkbox__item
+          directory-tree__checkbox__item--checkbox"
+            >
+              <Checkbox
+                checked={isSelected}
+                id={id}
+                onClick={() =>
+                  onItemSelect({
+                    type: 'directory',
+                    depth,
+                    path: currentPath,
+                    select: !isSelected,
+                  })
+                }
+              />
+            </div>
+            <div
+              className="directory-tree__checkbox__item
+          directory-tree__checkbox__item--icon"
+            >
+              {expanded ? <FolderOpenSolid /> : <FolderClosedSolid />}
+            </div>
+          </div>
+          <div className="file__name">{directoryName}</div>
         </div>
-        <div
-          className="directory-tree__checkbox__item
-          directory-tree__checkbox__item--icon">
-          {icon}
-        </div>
-      </div>
-    );
-  }
-
-  getSubTree() {
-    const {depth, itemsTree, hash, onItemSelect} = this.props;
-    const {expanded} = this.state;
-
-    if (expanded) {
-      return (
+      </button>
+      {expanded ? (
         <div className="directory-tree__node directory-tree__node--group">
           <DirectoryTree
             depth={depth}
             hash={hash}
             key={`${expanded}-${depth}`}
             onItemSelect={onItemSelect}
-            path={this.getCurrentPath()}
+            path={currentPath}
             itemsTree={itemsTree}
           />
         </div>
-      );
-    }
-
-    return null;
-  }
-
-  handleDirectoryClick = (): void => {
-    this.setState((state) => ({
-      expanded: !state.expanded,
-    }));
-  };
-
-  handleDirectorySelection = (): void => {
-    const {depth, isSelected, onItemSelect} = this.props;
-
-    onItemSelect({
-      type: 'directory',
-      depth,
-      path: this.getCurrentPath(),
-      select: !isSelected,
-    });
-  };
-
-  render() {
-    const {depth, directoryName, isSelected} = this.props;
-    const {expanded} = this.state;
-
-    const branchClasses = classnames('directory-tree__branch', `directory-tree__branch--depth-${depth}`, {
-      'directory-tree__node--selected': isSelected,
-    });
-    const directoryClasses = classnames(
-      'directory-tree__node',
-      'directory-tree__node--selectable directory-tree__node--directory',
-      {
-        'is-expanded': expanded,
-      },
-    );
-
-    return (
-      <div className={branchClasses}>
-        <button
-          className={directoryClasses}
-          css={{
-            width: '100%',
-            textAlign: 'left',
-            ':focus': {
-              outline: 'none',
-              WebkitTapHighlightColor: 'transparent',
-            },
-            ':focus-visible': {
-              outline: 'dashed',
-            },
-          }}
-          type="button"
-          onClick={this.handleDirectoryClick}
-          title={directoryName}>
-          <div className="file__label">
-            {this.getIcon()}
-            <div className="file__name">{directoryName}</div>
-          </div>
-        </button>
-        {this.getSubTree()}
-      </div>
-    );
-  }
-}
+      ) : null}
+    </div>
+  );
+};
 
 export default DirectoryTreeNode;

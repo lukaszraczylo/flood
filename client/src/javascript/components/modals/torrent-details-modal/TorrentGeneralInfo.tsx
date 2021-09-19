@@ -22,19 +22,9 @@ const TorrentGeneralInfo: FC = observer(() => {
     return null;
   }
 
-  const torrent = TorrentStore.torrents[UIStore?.activeModal?.hash];
+  const torrent = TorrentStore.torrents[UIStore.activeModal.hash];
   if (torrent == null) {
     return null;
-  }
-
-  let dateAdded = null;
-  if (torrent.dateAdded) {
-    dateAdded = new Date(torrent.dateAdded * 1000);
-  }
-
-  let creation = null;
-  if (torrent.dateCreated) {
-    creation = new Date(torrent.dateCreated * 1000);
   }
 
   const VALUE_NOT_AVAILABLE = (
@@ -57,14 +47,14 @@ const TorrentGeneralInfo: FC = observer(() => {
               <Trans id="torrents.details.general.date.added" />
             </td>
             <td className="torrent-details__detail__value">
-              {dateAdded
-                ? `${i18n.date(dateAdded, {
+              {torrent.dateAdded > 0
+                ? i18n.date(new Date(torrent.dateAdded * 1000), {
                     year: 'numeric',
                     month: 'long',
                     day: '2-digit',
                     hour: 'numeric',
                     minute: 'numeric',
-                  })}`
+                  })
                 : VALUE_NOT_AVAILABLE}
             </td>
           </tr>
@@ -85,6 +75,22 @@ const TorrentGeneralInfo: FC = observer(() => {
           <tr className="torrent-details__table__heading">
             <td className="torrent-details__table__heading--tertiary" colSpan={2}>
               <Trans id="torrents.details.general.heading.transfer" />
+            </td>
+          </tr>
+          <tr className="torrent-details__detail torrent-details__detail--dateFinished">
+            <td className="torrent-details__detail__label">
+              <Trans id="torrents.details.general.date.finished" />
+            </td>
+            <td className="torrent-details__detail__value">
+              {torrent.dateFinished > 0
+                ? i18n.date(new Date(torrent.dateFinished * 1000), {
+                    year: 'numeric',
+                    month: 'long',
+                    day: '2-digit',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                  })
+                : VALUE_NOT_AVAILABLE}
             </td>
           </tr>
           <tr className="torrent-details__detail torrent-details__detail--downloaded">
@@ -126,6 +132,30 @@ const TorrentGeneralInfo: FC = observer(() => {
               />
             </td>
           </tr>
+          <tr className="torrent-details__detail torrent-details__detail--dateActive">
+            <td className="torrent-details__detail__label">
+              <Trans id="torrents.details.general.date.active" />
+            </td>
+            <td className="torrent-details__detail__value">
+              {(() => {
+                if (torrent.dateActive === 0) {
+                  return VALUE_NOT_AVAILABLE;
+                }
+
+                if (torrent.dateActive === -1) {
+                  return i18n._('torrents.details.general.date.active.now');
+                }
+
+                return i18n.date(new Date(torrent.dateActive * 1000), {
+                  year: 'numeric',
+                  month: 'long',
+                  day: '2-digit',
+                  hour: 'numeric',
+                  minute: 'numeric',
+                });
+              })()}
+            </td>
+          </tr>
           <tr className="torrent-details__table__heading">
             <td className="torrent-details__table__heading--tertiary" colSpan={2}>
               <Trans id="torrents.details.general.heading.torrent" />
@@ -136,14 +166,14 @@ const TorrentGeneralInfo: FC = observer(() => {
               <Trans id="torrents.details.general.date.created" />
             </td>
             <td className="torrent-details__detail__value">
-              {creation
-                ? `${i18n.date(creation, {
+              {torrent.dateCreated > 0
+                ? i18n.date(new Date(torrent.dateCreated * 1000), {
                     year: 'numeric',
                     month: 'long',
                     day: '2-digit',
                     hour: 'numeric',
                     minute: 'numeric',
-                  })}`
+                  })
                 : VALUE_NOT_AVAILABLE}
             </td>
           </tr>

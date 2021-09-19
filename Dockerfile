@@ -11,7 +11,7 @@
 # publish the result image unless it was composed in a clean environment.
 
 ARG BUILDPLATFORM=amd64
-ARG NODE_IMAGE=node:alpine
+ARG NODE_IMAGE=docker.io/node:alpine
 
 FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} as nodebuild
 

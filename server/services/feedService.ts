@@ -60,7 +60,7 @@ class FeedService extends BaseService {
         // Migration
         if (feedID == null) {
           this.removeItem(rule._id).then(() => {
-            const oldFeedID = ((rule as unknown) as {feedID: string})?.feedID;
+            const oldFeedID = (rule as unknown as {feedID: string})?.feedID;
             if (oldFeedID != null) {
               this.addRule({
                 destination: rule.destination,
@@ -267,31 +267,29 @@ class FeedService extends BaseService {
         }
 
         Promise.all(
-          itemsToDownload.map(
-            async (item): Promise<Array<string>> => {
-              const {urls, destination, start, tags, ruleID} = item;
+          itemsToDownload.map(async (item): Promise<Array<string>> => {
+            const {urls, destination, start, tags, ruleID} = item;
 
-              await this.services?.clientGatewayService
-                ?.addTorrentsByURL({
-                  urls,
-                  cookies: {},
-                  destination,
-                  tags,
-                  start,
-                  isBasePath: false,
-                  isCompleted: false,
-                  isSequential: false,
-                  isInitialSeeding: false,
-                })
-                .then(() => {
-                  this.db.update({_id: feedID}, {$inc: {count: 1}}, {upsert: true});
-                  this.db.update({_id: ruleID}, {$inc: {count: 1}}, {upsert: true});
-                })
-                .catch(console.error);
+            await this.services?.clientGatewayService
+              ?.addTorrentsByURL({
+                urls,
+                cookies: {},
+                destination,
+                tags,
+                start,
+                isBasePath: false,
+                isCompleted: false,
+                isSequential: false,
+                isInitialSeeding: false,
+              })
+              .then(() => {
+                this.db.update({_id: feedID}, {$inc: {count: 1}}, {upsert: true});
+                this.db.update({_id: ruleID}, {$inc: {count: 1}}, {upsert: true});
+              })
+              .catch(console.error);
 
-              return urls;
-            },
-          ),
+            return urls;
+          }),
         ).then((ArrayOfURLArrays) => {
           const addedURLs = ArrayOfURLArrays.reduce(
             (URLArray: Array<string>, urls: Array<string>) => URLArray.concat(urls),
@@ -330,6 +328,10 @@ class FeedService extends BaseService {
     if (feedReaderToRemove != null) {
       feedReaderToRemove.stopReader();
       this.feedReaders.splice(feedReaderToRemoveIndex, 1);
+    }
+
+    for (const [key, rule] of Object.entries(this.rules)) {
+      this.rules[key] = rule.filter((rule) => rule._id !== id);
     }
 
     return this.db.remove({_id: id}, {}).then(() => undefined);

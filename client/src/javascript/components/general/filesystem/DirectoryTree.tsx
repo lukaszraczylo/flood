@@ -9,8 +9,8 @@ import DirectoryFileList from './DirectoryFileList';
 import DirectoryTreeNode from './DirectoryTreeNode';
 
 interface DirectoryTreeProps {
-  depth?: number;
-  path?: Array<string>;
+  depth: number;
+  path: Array<string>;
   hash: TorrentProperties['hash'];
   itemsTree: TorrentContentSelectionTree;
   onItemSelect: (selection: TorrentContentSelection) => void;
@@ -25,32 +25,30 @@ const DirectoryTree: FC<DirectoryTreeProps> = (props: DirectoryTreeProps) => {
     directories != null
       ? Object.keys(directories)
           .sort((a, b) => a.localeCompare(b))
-          .map(
-            (directoryName, index): ReactNode => {
-              const subSelectedItems = itemsTree.directories && itemsTree.directories[directoryName];
+          .map((directoryName, index): ReactNode => {
+            const subSelectedItems = itemsTree.directories && itemsTree.directories[directoryName];
 
-              const id = `${index}${childDepth}${directoryName}`;
-              const isSelected = (subSelectedItems && subSelectedItems.isSelected) || false;
+            const id = `${index}${childDepth}${directoryName}`;
+            const isSelected = (subSelectedItems && subSelectedItems.isSelected) || false;
 
-              if (subSelectedItems == null) {
-                return null;
-              }
+            if (subSelectedItems == null) {
+              return null;
+            }
 
-              return (
-                <DirectoryTreeNode
-                  depth={childDepth}
-                  directoryName={directoryName}
-                  hash={hash}
-                  id={id}
-                  isSelected={isSelected}
-                  key={id}
-                  itemsTree={subSelectedItems}
-                  onItemSelect={onItemSelect}
-                  path={path}
-                />
-              );
-            },
-          )
+            return (
+              <DirectoryTreeNode
+                depth={childDepth}
+                directoryName={directoryName}
+                hash={hash}
+                id={id}
+                isSelected={isSelected}
+                key={id}
+                itemsTree={subSelectedItems}
+                onItemSelect={onItemSelect}
+                path={path}
+              />
+            );
+          })
       : [];
 
   const fileList: ReactNode =
@@ -66,11 +64,6 @@ const DirectoryTree: FC<DirectoryTreeProps> = (props: DirectoryTreeProps) => {
     ) : null;
 
   return <div className="directory-tree__tree">{directoryNodes.concat(fileList)}</div>;
-};
-
-DirectoryTree.defaultProps = {
-  depth: 0,
-  path: [],
 };
 
 export default DirectoryTree;

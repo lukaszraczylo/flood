@@ -144,7 +144,7 @@ const ARROW_SIZE = 7;
 
 class Tooltip extends Component<TooltipProps, TooltipStates> {
   container = window;
-  triggerNode = createRef<HTMLButtonElement>();
+  triggerNode = createRef<HTMLDivElement>();
   tooltipNode = createRef<HTMLDivElement>();
 
   static defaultProps: Partial<TooltipProps> = {
@@ -405,7 +405,8 @@ class Tooltip extends Component<TooltipProps, TooltipStates> {
     }
 
     return (
-      <button
+      <div
+        aria-label={typeof content === 'string' ? content : undefined}
         className={wrapperClassName}
         css={[
           {
@@ -416,12 +417,25 @@ class Tooltip extends Component<TooltipProps, TooltipStates> {
           },
           styles,
         ]}
-        tabIndex={onClick ? undefined : -1}
-        type="button"
+        tabIndex={0}
+        role="button"
         onClick={onClick}
+        onKeyPress={(e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            onClick?.();
+          }
+        }}
+        onFocus={() => this.handleMouseEnter()}
+        onBlur={() => {
+          if (!interactive) {
+            this.handleMouseLeave();
+          }
+        }}
         onMouseEnter={() => this.handleMouseEnter()}
         onMouseLeave={() => this.handleMouseLeave()}
-        ref={this.triggerNode}>
+        ref={this.triggerNode}
+      >
         {children}
         {ReactDOM.createPortal(
           <div
@@ -429,12 +443,13 @@ class Tooltip extends Component<TooltipProps, TooltipStates> {
             ref={this.tooltipNode}
             style={tooltipStyle}
             onMouseEnter={this.handleTooltipMouseEnter}
-            onMouseLeave={this.handleTooltipMouseLeave}>
+            onMouseLeave={this.handleTooltipMouseLeave}
+          >
             <div className={contentClassName}>{content}</div>
           </div>,
           appElement,
         )}
-      </button>
+      </div>
     );
   }
 }

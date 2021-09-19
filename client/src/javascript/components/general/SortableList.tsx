@@ -15,7 +15,6 @@ interface SortableListProps {
   className: string;
   lockedIDs: Array<string>;
   items: Array<ListItem>;
-  isDraggable?: boolean;
   renderItem: (item: ListItem, index: number) => ReactNode;
   onMouseDown?: (event: MouseEvent) => void;
   onMove?: (items: this['items']) => void;
@@ -27,7 +26,6 @@ const SortableList: FC<SortableListProps> = ({
   id: listID,
   items,
   lockedIDs,
-  isDraggable,
   renderItem,
   onMouseDown,
   onMove,
@@ -44,7 +42,8 @@ const SortableList: FC<SortableListProps> = ({
         if (onMouseDown) {
           onMouseDown(event);
         }
-      }}>
+      }}
+    >
       <DndProvider options={HTML5toTouch}>
         <ul className={classes}>
           {currentItems.map((item, index) => {
@@ -55,7 +54,6 @@ const SortableList: FC<SortableListProps> = ({
                 id={id}
                 index={index}
                 isLocked={lockedIDs.includes(id)}
-                isDraggable={isDraggable}
                 isVisible={visible}
                 key={id}
                 onDrop={() => {
@@ -78,7 +76,8 @@ const SortableList: FC<SortableListProps> = ({
                   if (onMove) {
                     onMove(newItems);
                   }
-                }}>
+                }}
+              >
                 {renderItem(item, index)}
               </SortableListItem>
             );
@@ -90,7 +89,6 @@ const SortableList: FC<SortableListProps> = ({
 };
 
 SortableList.defaultProps = {
-  isDraggable: undefined,
   onMouseDown: undefined,
   onMove: undefined,
   onDrop: undefined,

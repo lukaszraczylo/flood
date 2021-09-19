@@ -6,7 +6,7 @@ import path from 'path';
 
 import {AccessLevel} from '../../shared/schema/constants/Auth';
 import config from '../../config';
-import services from '../services';
+import {bootstrapServicesForUser, destroyUserServices} from '../services';
 
 import type {ClientConnectionSettings} from '../../shared/schema/ClientConnectionSettings';
 import type {Credentials, UserInDatabase} from '../../shared/schema/Auth';
@@ -50,7 +50,7 @@ class Users {
 
   async bootstrapServicesForAllUsers(): Promise<void> {
     return this.listUsers()
-      .then((users) => Promise.all(users.map((user) => services.bootstrapServicesForUser(user))))
+      .then((users) => Promise.all(users.map((user) => bootstrapServicesForUser(user))))
       .then(() => undefined);
   }
 
@@ -61,30 +61,28 @@ class Users {
    * @return {Promise<AccessLevel>} - Returns access level of the user if matched or rejects with error.
    */
   async comparePassword(credentials: Pick<Credentials, 'username' | 'password'>): Promise<AccessLevel> {
-    return this.db
-      .findOne<Credentials>({username: credentials.username})
-      .then((user) => {
-        // Wrong data provided
-        if (credentials?.password == null) {
+    return this.db.findOne<Credentials>({username: credentials.username}).then((user) => {
+      // Wrong data provided
+      if (credentials?.password == null) {
+        throw new Error();
+      }
+
+      // Username not found.
+      if (user == null) {
+        throw new Error();
+      }
+
+      return argon2Verify({
+        password: credentials.password,
+        hash: user.password,
+      }).then((isMatch) => {
+        if (isMatch) {
+          return user.level;
+        } else {
           throw new Error();
         }
-
-        // Username not found.
-        if (user == null) {
-          throw new Error();
-        }
-
-        return argon2Verify({
-          password: credentials.password,
-          hash: user.password,
-        }).then((isMatch) => {
-          if (isMatch) {
-            return user.level;
-          } else {
-            throw new Error();
-          }
-        });
       });
+    });
   }
 
   /**
@@ -124,13 +122,14 @@ class Users {
    * @return {Promise<string>} - Returns ID of removed user or rejects with error.
    */
   async removeUser(username: string): Promise<string> {
-    return this.db
-      .findOne<Credentials>({username})
-      .then(async (user) => {
-        await this.db.remove({username}, {});
-        fs.rmdirSync(path.join(config.dbPath, user._id), {recursive: true});
-        return user._id;
-      });
+    return this.db.findOne<Credentials>({username}).then(async ({_id}) => {
+      destroyUserServices(_id);
+
+      await this.db.remove({username}, {});
+      await fs.promises.rmdir(path.join(config.dbPath, _id), {recursive: true}).catch(() => undefined);
+
+      return _id;
+    });
   }
 
   /**

@@ -1,9 +1,10 @@
-import {FC, ReactNode, useEffect, useRef} from 'react';
+import {FC, KeyboardEvent, ReactNode, useEffect, useRef} from 'react';
 import {observer} from 'mobx-react';
 import {reaction} from 'mobx';
 import {Trans} from '@lingui/react';
+import {useEvent} from 'react-use';
 
-import type {FixedSizeList} from 'react-window';
+import type {FixedSizeList, ListChildComponentProps} from 'react-window';
 
 import {Button} from '@client/ui';
 import {Files} from '@client/ui/icons';
@@ -12,7 +13,7 @@ import SettingActions from '@client/actions/SettingActions';
 import SettingStore from '@client/stores/SettingStore';
 import TorrentFilterStore from '@client/stores/TorrentFilterStore';
 import TorrentStore from '@client/stores/TorrentStore';
-
+import UIActions from '@client/actions/UIActions';
 import SortDirections from '@client/constants/SortDirections';
 
 import type {TorrentListColumn} from '@client/constants/TorrentListColumns';
@@ -25,9 +26,14 @@ import TableHeading from './TableHeading';
 import TorrentListDropzone from './TorrentListDropzone';
 import TorrentListRow from './TorrentListRow';
 
+const TorrentListRowRenderer: FC<ListChildComponentProps> = observer(({index, style}) => (
+  <TorrentListRow hash={TorrentStore.filteredTorrents[index].hash} style={style} />
+));
+
 const TorrentList: FC = observer(() => {
   const listHeaderRef = useRef<HTMLDivElement>(null);
   const listViewportRef = useRef<FixedSizeList>(null);
+  const listViewportOuterRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const dispose = reaction(
@@ -41,6 +47,24 @@ const TorrentList: FC = observer(() => {
 
     return dispose;
   }, []);
+
+  useEvent('keydown', (e: KeyboardEvent) => {
+    const {ctrlKey, key, metaKey, repeat, target} = e;
+
+    const tagName = (target as HTMLElement)?.tagName.toUpperCase();
+    if (tagName === 'INPUT' || tagName === 'TEXTAREA') {
+      return;
+    }
+
+    if (repeat) {
+      return;
+    }
+
+    if ((metaKey || ctrlKey) && key === 'a') {
+      e.preventDefault();
+      UIActions.selectAllTorrents();
+    }
+  });
 
   const torrents = TorrentStore.filteredTorrents;
   const {torrentListViewSize = 'condensed'} = SettingStore.floodSettings;
@@ -70,7 +94,8 @@ const TorrentList: FC = observer(() => {
               onClick={() => {
                 TorrentFilterStore.clearAllFilters();
               }}
-              priority="tertiary">
+              priority="tertiary"
+            >
               <Trans id="torrents.list.clear.filters" />
             </Button>
           </div>
@@ -81,6 +106,11 @@ const TorrentList: FC = observer(() => {
     if (isCondensed) {
       torrentListHeading = (
         <TableHeading
+          onCellFocus={() => {
+            if (listViewportOuterRef.current != null && listHeaderRef.current != null) {
+              listViewportOuterRef.current.scrollLeft = listHeaderRef.current.scrollLeft;
+            }
+          }}
           onCellClick={(property: TorrentListColumn) => {
             const currentSort = SettingStore.floodSettings.sortTorrents;
 
@@ -114,13 +144,10 @@ const TorrentList: FC = observer(() => {
     content = (
       <ListViewport
         className="torrent__list__viewport"
-        itemRenderer={({index, style}) => {
-          const {hash} = TorrentStore.filteredTorrents[index];
-
-          return <TorrentListRow key={hash} style={style} hash={hash} />;
-        }}
+        itemCount={torrents.length}
+        itemKey={(index) => TorrentStore.filteredTorrents[index].hash}
+        itemRenderer={TorrentListRowRenderer}
         itemSize={isCondensed ? 30 : 70}
-        listLength={torrents.length}
         ref={listViewportRef}
         outerRef={(ref) => {
           const viewportDiv = ref;
@@ -131,6 +158,7 @@ const TorrentList: FC = observer(() => {
               }
             };
           }
+          listViewportOuterRef.current = viewportDiv;
         }}
       />
     );
@@ -138,7 +166,7 @@ const TorrentList: FC = observer(() => {
 
   return (
     <TorrentListDropzone>
-      <div className="torrent__list__wrapper">
+      <div className="torrent__list__wrapper" role="table">
         <ContextMenuMountPoint id="torrent-list-item" />
         {torrentListHeading}
         {content}

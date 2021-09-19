@@ -1,12 +1,12 @@
 import classnames from 'classnames';
+import {computed} from 'mobx';
 import {FC, useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
 import {Trans, useLingui} from '@lingui/react';
 
 import {Clock, DownloadThick, Ratio, Start, Stop, UploadThick} from '@client/ui/icons';
 import TorrentActions from '@client/actions/TorrentActions';
-import torrentStatusClasses from '@client/util/torrentStatusClasses';
-import torrentStatusIcons from '@client/util/torrentStatusIcons';
+import {torrentStatusClasses, torrentStatusEffective} from '@client/util/torrentStatus';
 import TorrentStore from '@client/stores/TorrentStore';
 import UIStore from '@client/stores/UIStore';
 
@@ -41,7 +41,6 @@ const TorrentHeading: FC = observer(() => {
     },
     'torrent-details__header',
   );
-  const torrentStatusIcon = torrentStatusIcons(torrent.status);
 
   return (
     <div className={torrentClasses}>
@@ -84,37 +83,46 @@ const TorrentHeading: FC = observer(() => {
               }}
             />
           </li>
-          <li
-            className={classnames('torrent-details__sub-heading__tertiary', 'torrent-details__action', {
-              'is-active': torrentStatus === 'start',
-            })}
-            key="start"
-            onClick={() => {
-              setTorrentStatus('start');
-              TorrentActions.startTorrents({
-                hashes: [torrent.hash],
-              });
-            }}>
-            <Start />
-            <Trans id="torrents.details.actions.start" />
+          <li className="torrent-details__sub-heading__tertiary" key="start">
+            <button
+              className={classnames('torrent-details__action', {
+                'is-active': torrentStatus === 'start',
+              })}
+              type="button"
+              onClick={() => {
+                setTorrentStatus('start');
+                TorrentActions.startTorrents({
+                  hashes: [torrent.hash],
+                });
+              }}
+            >
+              <Start />
+              <Trans id="torrents.details.actions.start" />
+            </button>
           </li>
-          <li
-            className={classnames('torrent-details__sub-heading__tertiary', 'torrent-details__action', {
-              'is-active': torrentStatus === 'stop',
-            })}
-            key="stop"
-            onClick={() => {
-              setTorrentStatus('stop');
-              TorrentActions.stopTorrents({
-                hashes: [torrent.hash],
-              });
-            }}>
-            <Stop />
-            <Trans id="torrents.details.actions.stop" />
+          <li className="torrent-details__sub-heading__tertiary" key="stop">
+            <button
+              className={classnames('torrent-details__action', {
+                'is-active': torrentStatus === 'stop',
+              })}
+              type="button"
+              onClick={() => {
+                setTorrentStatus('stop');
+                TorrentActions.stopTorrents({
+                  hashes: [torrent.hash],
+                });
+              }}
+            >
+              <Stop />
+              <Trans id="torrents.details.actions.stop" />
+            </button>
           </li>
         </ul>
       </div>
-      <ProgressBar percent={Math.ceil(torrent.percentComplete)} icon={torrentStatusIcon} />
+      <ProgressBar
+        percent={computed(() => Math.ceil(torrent.percentComplete)).get()}
+        status={computed(() => torrentStatusEffective(torrent.status)).get()}
+      />
     </div>
   );
 });

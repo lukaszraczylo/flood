@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import yargs from 'yargs';
+import yargs from 'yargs/yargs';
 
 import {configSchema} from '@shared/schema/Config';
 
@@ -12,7 +12,7 @@ import type {ClientConnectionSettings} from '@shared/schema/ClientConnectionSett
 
 import {version} from './package.json';
 
-const {argv} = yargs
+const {argv} = yargs(process.argv.slice(2))
   .env('FLOOD_OPTION_')
   .option('baseuri', {
     default: '/',
@@ -54,6 +54,22 @@ const {argv} = yargs
     describe: "Disable Flood's builtin access control system, deprecated, use auth=none instead",
     type: 'boolean',
   })
+  .option('dehost', {
+    describe: 'Host of Deluge RPC interface',
+    type: 'string',
+  })
+  .option('deport', {
+    describe: 'Port of Deluge RPC interface',
+    type: 'number',
+  })
+  .option('deuser', {
+    describe: 'Username of Deluge RPC interface',
+    type: 'string',
+  })
+  .option('depass', {
+    describe: 'Password of Deluge RPC interface',
+    type: 'string',
+  })
   .option('rthost', {
     describe: "Host of rTorrent's SCGI interface",
     type: 'string',
@@ -91,7 +107,24 @@ const {argv} = yargs
     describe: 'Password of Transmission RPC interface',
     type: 'string',
   })
-  .group(['rthost', 'rtport', 'rtsocket', 'qburl', 'qbuser', 'qbpass', 'trurl', 'truser', 'trpass'], 'When auth=none:')
+  .group(
+    [
+      'dehost',
+      'deport',
+      'deuser',
+      'depass',
+      'rthost',
+      'rtport',
+      'rtsocket',
+      'qburl',
+      'qbuser',
+      'qbpass',
+      'trurl',
+      'truser',
+      'trpass',
+    ],
+    'When auth=none:',
+  )
   .option('ssl', {
     default: false,
     describe: 'Enable SSL, key.pem and fullchain.pem needed in runtime directory',
@@ -170,6 +203,7 @@ process.on('SIGINT', () => {
 });
 
 try {
+  fs.mkdirSync(path.join(argv.rundir), {recursive: true, mode: 0o700});
   fs.mkdirSync(path.join(argv.rundir, 'db'), {recursive: true});
   fs.mkdirSync(path.join(argv.rundir, 'temp'), {recursive: true});
 } catch (error) {
@@ -261,6 +295,16 @@ if (argv.rtsocket != null || argv.rthost != null) {
     url: argv.trurl,
     username: argv.truser,
     password: argv.trpass,
+  };
+} else if (argv.dehost != null) {
+  connectionSettings = {
+    client: 'Deluge',
+    type: 'rpc',
+    version: 1,
+    host: argv.dehost,
+    port: argv.deport,
+    username: argv.deuser,
+    password: argv.depass,
   };
 }
 

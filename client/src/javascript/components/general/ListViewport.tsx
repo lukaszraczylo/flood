@@ -1,11 +1,12 @@
 import {ComponentProps, FC, forwardRef, RefCallback, UIEvent, useEffect, useRef} from 'react';
 import {FixedSizeList} from 'react-window';
+import {observer} from 'mobx-react';
 import {OverlayScrollbarsComponent} from 'overlayscrollbars-react';
 import {useWindowSize} from 'react-use';
 
-import type {ListChildComponentProps} from 'react-window';
+import ConfigStore from '@client/stores/ConfigStore';
 
-import ConfigStore from '../../stores/ConfigStore';
+import type {FixedSizeListProps, ListChildComponentProps} from 'react-window';
 
 const Overflow = forwardRef<HTMLDivElement, ComponentProps<'div'>>((props: ComponentProps<'div'>, ref) => {
   const {children, className, onScroll} = props;
@@ -26,14 +27,14 @@ const Overflow = forwardRef<HTMLDivElement, ComponentProps<'div'>>((props: Compo
     refCallback(viewport);
 
     if (onScroll) {
-      viewport.addEventListener('scroll', (e) => onScroll((e as unknown) as UIEvent<HTMLDivElement>), {
+      viewport.addEventListener('scroll', (e) => onScroll(e as unknown as UIEvent<HTMLDivElement>), {
         passive: true,
       });
     }
 
     return () => {
       if (onScroll) {
-        viewport.removeEventListener('scroll', (e) => onScroll((e as unknown) as UIEvent<HTMLDivElement>));
+        viewport.removeEventListener('scroll', (e) => onScroll(e as unknown as UIEvent<HTMLDivElement>));
       }
     };
   }, [onScroll, ref]);
@@ -45,42 +46,38 @@ const Overflow = forwardRef<HTMLDivElement, ComponentProps<'div'>>((props: Compo
         scrollbars: {autoHide: 'leave', clickScrolling: true},
         className,
       }}
-      ref={osRef}>
+      ref={osRef}
+    >
       {children}
     </OverlayScrollbarsComponent>
   );
 });
 
-interface ListViewportProps {
-  className: string;
+interface ListViewportProps
+  extends Pick<FixedSizeListProps, 'className' | 'itemCount' | 'itemKey' | 'itemSize' | 'outerRef'> {
   itemRenderer: FC<ListChildComponentProps>;
-  itemSize: number;
-  listLength: number;
-  outerRef?: RefCallback<HTMLDivElement>;
 }
 
 const ListViewport = forwardRef<FixedSizeList, ListViewportProps>((props: ListViewportProps, ref) => {
-  const {className, itemRenderer, itemSize, listLength, outerRef} = props;
-  const {height: windowHeight, width: windowWidth} = useWindowSize();
+  const {className, itemCount, itemKey, itemRenderer, itemSize, outerRef} = props;
+  const {height: windowHeight} = useWindowSize();
 
   return (
     <FixedSizeList
       className={`${className} ${ConfigStore.isPreferDark ? 'os-theme-light' : 'os-theme-dark'}`}
-      height={Math.max(itemSize * 30, windowHeight * 1.5)}
-      itemCount={listLength}
+      height={Math.max(itemSize * 30, windowHeight)}
+      itemCount={itemCount}
+      itemKey={itemKey}
       itemSize={itemSize}
       width="100%"
-      innerElementType="ul"
-      outerElementType={windowWidth > 720 ? Overflow : undefined} // Don't use custom scrollbar on smaller screens
+      outerElementType={ConfigStore.isSmallScreen ? undefined : Overflow} // Don't use custom scrollbar on smaller screens
       ref={ref}
-      outerRef={outerRef}>
+      overscanCount={30}
+      outerRef={outerRef}
+    >
       {itemRenderer}
     </FixedSizeList>
   );
 });
 
-ListViewport.defaultProps = {
-  outerRef: undefined,
-};
-
-export default ListViewport;
+export default observer(ListViewport);

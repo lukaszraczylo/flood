@@ -96,6 +96,9 @@ const getSpeedList = ({
 const SpeedLimitDropdown: FC = observer(() => {
   const {i18n} = useLingui();
   const tooltipRef = useRef<Tooltip>(null);
+  const dropdownClickRef = useRef<() => void>(() => {
+    // do nothing.
+  });
 
   const label = i18n._('sidebar.button.speedlimits');
   const speedListOptions = {
@@ -107,6 +110,7 @@ const SpeedLimitDropdown: FC = observer(() => {
 
   return (
     <Dropdown
+      dropdownClickRef={dropdownClickRef}
       dropdownWrapperClass="dropdown dropdown--speed-limits sidebar__action"
       handleItemSelect={(item) => {
         if (item.value != null) {
@@ -121,7 +125,8 @@ const SpeedLimitDropdown: FC = observer(() => {
         <div
           className="sidebar__icon-button sidebar__icon-button--interactive
         sidebar__icon-button--limits"
-          title={label}>
+          title={label}
+        >
           <Limits />
           {label}
         </div>
@@ -140,10 +145,13 @@ const SpeedLimitDropdown: FC = observer(() => {
           content={label}
           position="bottom"
           ref={tooltipRef}
-          wrapperClassName="sidebar__icon-button tooltip__wrapper">
+          wrapperClassName="sidebar__icon-button tooltip__wrapper"
+          onClick={() => dropdownClickRef.current?.()}
+        >
           <Limits />
         </Tooltip>
       }
+      isFocusHandled
     />
   );
 });

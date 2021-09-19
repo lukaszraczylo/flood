@@ -1,5 +1,6 @@
-import {FC, ReactNode, useEffect, useState} from 'react';
+import {FC, ReactNode, useState} from 'react';
 import {Trans, useLingui} from '@lingui/react';
+import {usePrevious} from 'react-use';
 
 import {FormRow, Select, SelectItem} from '@client/ui';
 
@@ -7,6 +8,7 @@ import {SUPPORTED_CLIENTS} from '@shared/schema/constants/ClientConnectionSettin
 
 import type {ClientConnectionSettings} from '@shared/schema/ClientConnectionSettings';
 
+import DelugeConnectionSettingsForm from './DelugeConnectionSettingsForm';
 import QBittorrentConnectionSettingsForm from './QBittorrentConnectionSettingsForm';
 import RTorrentConnectionSettingsForm from './RTorrentConnectionSettingsForm';
 import TransmissionConnectionSettingsForm from './TransmissionConnectionSettingsForm';
@@ -23,12 +25,17 @@ const ClientConnectionSettingsForm: FC<ClientConnectionSettingsFormProps> = ({
   const {i18n} = useLingui();
   const [selectedClient, setSelectedClient] = useState<ClientConnectionSettings['client']>(DEFAULT_SELECTION);
 
-  useEffect(() => {
+  const prevSelectedClient = usePrevious(selectedClient);
+
+  if (selectedClient !== prevSelectedClient) {
     onSettingsChange(null);
-  }, [selectedClient, onSettingsChange]);
+  }
 
   let settingsForm: ReactNode = null;
   switch (selectedClient) {
+    case 'Deluge':
+      settingsForm = <DelugeConnectionSettingsForm onSettingsChange={onSettingsChange} />;
+      break;
     case 'qBittorrent':
       settingsForm = <QBittorrentConnectionSettingsForm onSettingsChange={onSettingsChange} />;
       break;
@@ -51,7 +58,8 @@ const ClientConnectionSettingsForm: FC<ClientConnectionSettingsFormProps> = ({
           onSelect={(newSelectedClient) => {
             setSelectedClient(newSelectedClient as ClientConnectionSettings['client']);
           }}
-          defaultID={DEFAULT_SELECTION}>
+          defaultID={DEFAULT_SELECTION}
+        >
           {SUPPORTED_CLIENTS.map((client) => (
             <SelectItem key={client} id={client}>
               <Trans id={`connection.settings.${client.toLowerCase()}`} />
